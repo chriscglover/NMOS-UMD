@@ -1,0 +1,11 @@
+# Normalise to LF in the repository. The sources are written with LF and this
+# keeps them that way, so a checkout on another machine does not come back as a
+# whole-file diff.
+* text=auto eol=lf
+
+# Visual Studio rewrites these with CRLF regardless, so do not fight it.
+*.sln     text eol=crlf
+*.csproj  text eol=crlf
+
+*.png binary
+*.ico binary
