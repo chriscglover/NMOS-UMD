@@ -19,6 +19,19 @@ Route "PCAP Replay THEBEAST:3210" to receiver "MV-01 In 01", and UMD address 1 r
 - Fits long NMOS labels into the **16 characters** 3.1 and 4.0 allow, three different ways.
 - Saves the mapping, so the tool comes back up driving the same wall.
 
+## Download
+
+Grab the latest build from the [Releases](https://github.com/chriscglover/NMOS-UMD/releases)
+page:
+
+| Asset | Use this if |
+|---|---|
+| `NmosUmd-win-x64-standalone.exe` | You want to just run it. Needs nothing installed — the .NET runtime is bundled. |
+| `NmosUmd-win-x64.exe` | You already have the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) and want a small download. |
+
+Both are single self-contained `.exe` files — no installer, nothing to unpack. Windows SmartScreen
+may warn on first run because the executables are unsigned.
+
 ## Build
 
 Needs the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or newer.
@@ -40,6 +53,9 @@ dotnet publish -c Release -r win-x64 --self-contained true `
 dotnet publish -c Release -r win-x64 --self-contained false `
   -p:PublishSingleFile=true
 ```
+
+Both commands leave a few WPF native DLLs next to the executable. They are not used by this
+application — the published `NmosUmd.exe` runs on its own.
 
 ## How to use it
 
