@@ -906,10 +906,10 @@ public sealed class MainForm : Form
     {
         ReadConfigFromControls();
 
-        if (Assignments().All(a => !a.Enabled || string.IsNullOrEmpty(a.ReceiverId)))
+        if (!Assignments().Any(UmdEngine.IsSendable))
         {
             if (!silent)
-                MessageBox.Show(this, "Map at least one receiver to a UMD address first.",
+                MessageBox.Show(this, "Map at least one receiver (or a template override) to a UMD address first.",
                     "NMOS UMD", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
@@ -1037,19 +1037,20 @@ public sealed class MainForm : Form
         SetCell(gridRow.Cells[_colSource.Index], row.SourceText);
         SetCell(gridRow.Cells[_colText.Index], row.Message.Text);
 
-        // Routed reads as normal text, an idle receiver as amber, and one the registry has
-        // lost as red - the last of those is a fault, not a state.
+        // Routed (or fixed text with no receiver) reads as normal text, an idle receiver as
+        // amber, and one the registry has lost as red - the last of those is a fault, not a state.
+        var fixedText = string.IsNullOrEmpty(assignment.ReceiverId);
         gridRow.Cells[_colSource.Index].Style.ForeColor = row.ReceiverOffline
             ? Color.FromArgb(170, 0, 0)
-            : row.Routed ? SystemColors.ControlText : Color.FromArgb(150, 90, 0);
+            : row.Routed || fixedText ? SystemColors.ControlText : Color.FromArgb(150, 90, 0);
 
         return row;
     }
 
-    /// <summary>The rows that are switched on and actually point at a receiver.</summary>
+    /// <summary>The rows that are switched on and have a receiver or a fixed override to send.</summary>
     private List<DataGridViewRow> SendableRows() =>
         _grid.Rows.Cast<DataGridViewRow>()
-             .Where(r => r.Tag is Assignment { Enabled: true } a && !string.IsNullOrEmpty(a.ReceiverId))
+             .Where(r => r.Tag is Assignment a && UmdEngine.IsSendable(a))
              .ToList();
 
     /// <summary>

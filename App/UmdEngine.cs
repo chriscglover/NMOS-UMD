@@ -31,10 +31,20 @@ public static class UmdEngine
     public static int MaxTextLength(TslVersion version) =>
         version == TslVersion.V50 ? 0 : TslPacketBuilder.V31TextLength;
 
+    /// <summary>
+    /// A row is sent when it is switched on and has something to say: a receiver to follow, or
+    /// a template override. A row with only an override and no receiver is a fixed caption - a
+    /// display that has no NMOS input behind it but still wants a name.
+    /// </summary>
+    public static bool IsSendable(Assignment assignment) =>
+        assignment.Enabled &&
+        (!string.IsNullOrEmpty(assignment.ReceiverId) || !string.IsNullOrWhiteSpace(assignment.TemplateOverride));
+
     public static UmdRow Build(Assignment assignment, RegistrySnapshot snapshot, AppConfig config)
     {
+        var hasReceiver = !string.IsNullOrEmpty(assignment.ReceiverId);
         var receiver = snapshot.Receiver(assignment.ReceiverId);
-        var offline = receiver is null;
+        var offline = hasReceiver && receiver is null;
 
         // Keep the row meaningful when the receiver is not in the registry: the saved label
         // still names it, so the display says which input has gone away.
@@ -44,9 +54,9 @@ public static class UmdEngine
             Label = assignment.ReceiverLabel
         };
 
-        var route = offline
-            ? new RouteInfo { Receiver = receiver }
-            : snapshot.Route(receiver);
+        var route = hasReceiver && !offline
+            ? snapshot.Route(receiver)
+            : new RouteInfo { Receiver = receiver };
 
         var routed = route.IsRouted;
         var template = string.IsNullOrWhiteSpace(assignment.TemplateOverride)
@@ -81,7 +91,7 @@ public static class UmdEngine
         {
             Assignment = assignment,
             Message = message,
-            SourceText = DescribeSource(route, offline),
+            SourceText = hasReceiver ? DescribeSource(route, offline) : "(no receiver - fixed text)",
             Routed = routed,
             ReceiverOffline = offline
         };
